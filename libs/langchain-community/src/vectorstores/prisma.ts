@@ -4,8 +4,9 @@ import { Document } from "@langchain/core/documents";
 
 const IdColumnSymbol = Symbol("id");
 const ContentColumnSymbol = Symbol("content");
+const MetadataColumnSymbol = Symbol("metadata");
 
-type ColumnSymbol = typeof IdColumnSymbol | typeof ContentColumnSymbol;
+type ColumnSymbol = typeof IdColumnSymbol | typeof ContentColumnSymbol | typeof MetadataColumnSymbol;
 
 declare type Value = unknown;
 declare type RawValue = Value | Sql;
@@ -124,9 +125,13 @@ export class PrismaVectorStore<
 
   contentColumn: keyof TModel & string;
 
+  metadataColumn?: keyof TModel & string;
+
   static IdColumn: typeof IdColumnSymbol = IdColumnSymbol;
 
   static ContentColumn: typeof ContentColumnSymbol = ContentColumnSymbol;
+
+  static MetadataColumn?: typeof MetadataColumn = MetadataColumn;
 
   protected db: PrismaClient;
 
@@ -157,12 +162,16 @@ export class PrismaVectorStore<
     const contentColumn = entries.find(
       (i) => i[1] === ContentColumnSymbol
     )?.[0];
+    const metadataColumn = entries.find(
+      (i) => i[1] === MetadataColumnSymbol
+    )?.[0];
 
     if (idColumn == null) throw new Error("Missing ID column");
     if (contentColumn == null) throw new Error("Missing content column");
 
     this.idColumn = idColumn;
     this.contentColumn = contentColumn;
+    metadataColumn && this.metadataColumn = metadataColumn;
 
     this.tableName = config.tableName;
     this.vectorColumnName = config.vectorColumnName;
